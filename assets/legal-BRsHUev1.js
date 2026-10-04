@@ -1,0 +1,1 @@
+import{t as e}from"./toast-CpZVAI23.js";import{f as o}from"./consent-C5I9tluq.js";document.querySelectorAll("[data-forget]").forEach(t=>t.addEventListener("click",()=>{o(),e("Done. Nothing from Embossed is kept on this device.")}));
