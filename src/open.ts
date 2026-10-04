@@ -4,6 +4,7 @@ import './styles/card.css';
 import './styles/open.css';
 import { designById, designs } from './card/designs';
 import { escapeXml } from './card/shapes';
+import { Confetti } from './card/confetti';
 import { CardViewer, type CardContent } from './card/viewer';
 import { decodeCard } from './share/encode';
 import { cardPicture, coverImage } from './share/render';
@@ -81,6 +82,7 @@ async function main() {
   const viewer = new CardViewer(stage, {
     toggleOnClick: true,
     idleSway: true,
+    celebrate: true,
     onToggle: (open) => {
       hint.textContent = open ? '' : 'Tap the card to open it';
       if (open && after.hidden) {
@@ -116,8 +118,14 @@ async function main() {
       <div class="env-flap" id="flap"><div class="flap-front"></div><div class="flap-back"></div></div>
       <button type="button" class="env-seal" id="seal" aria-label="Break the wax seal and open the envelope">
         <span class="seal-ring" aria-hidden="true"></span>
+        ${Array.from({ length: 7 }, (_, i) => {
+          const a = (i / 7) * Math.PI * 2 + 0.4;
+          const dist = 46 + (i % 3) * 14;
+          return `<span class="shard" aria-hidden="true" style="--tx:${(Math.cos(a) * dist).toFixed(0)}px;--ty:${(Math.sin(a) * dist + 40).toFixed(0)}px;--r:${(i * 97) % 360}deg;--s:${(0.5 + (i % 3) * 0.25).toFixed(2)}"></span>`;
+        }).join('')}
         <span class="seal-half seal-l">${sealSvg(initial, 'sl')}</span>
         <span class="seal-half seal-r">${sealSvg(initial, 'sr')}</span>
+        <span class="seal-glint" aria-hidden="true"></span>
       </button>
     </div>`;
   wrap.hidden = false;
@@ -132,7 +140,7 @@ async function main() {
     const box = scene.getBoundingClientRect();
     const availH = box.height - 150;
     const availW = box.width;
-    ch = Math.min((availH * 0.94) / 1.86, ((availW * 0.78) / w) * h, 520);
+    ch = Math.min((availH * 0.94) / 2, ((availW * 0.78) / w) * h, 500);
     cw = (ch / h) * w;
     const ew = cw * 1.08;
     const eh = ch * 1.06;
@@ -150,6 +158,13 @@ async function main() {
   const ro = new ResizeObserver(size);
   ro.observe(scene);
 
+  const fxCanvas = document.createElement('canvas');
+  fxCanvas.className = 'scene-fx';
+  fxCanvas.setAttribute('aria-hidden', 'true');
+  scene.append(fxCanvas);
+  const fx = new Confetti(fxCanvas);
+  const confetti = design.confetti ?? { kind: 'flake' as const, colors: ['#f3d98d', '#d9b25a', '#ecd08a'] };
+
   hint.textContent = 'Tap the wax seal to open your envelope';
   document.body.classList.add('is-ready');
 
@@ -159,13 +174,18 @@ async function main() {
     void CardViewer.requestMotion();
     hint.textContent = '';
     envelope.classList.add('is-breaking');
-    await wait(420);
+    await wait(480);
     envelope.classList.add('is-flap-open');
-    await wait(380);
+    await wait(400);
     envelope.classList.add('is-flap-behind');
-    await wait(420);
+    await wait(380);
     envelope.classList.add('is-rising');
-    await wait(1150);
+    await wait(620);
+    // A breath of confetti escapes as the card clears the envelope.
+    const er = envelope.getBoundingClientRect();
+    const sr = scene.getBoundingClientRect();
+    fx.burst({ ...confetti, x: er.left + er.width / 2 - sr.left, y: er.top + er.height * 0.05 - sr.top, width: er.width * 0.7, count: 64, power: 8.5 });
+    await wait(720);
 
     // Hand over from the flat picture to the live, tilting card.
     ro.disconnect();
@@ -175,10 +195,14 @@ async function main() {
     const from = cardEl.getBoundingClientRect();
     envelope.classList.add('is-leaving');
     const k = target.width / from.width;
-    cardEl.style.transformOrigin = '0 0';
-    cardEl.style.transition = reduced ? 'none' : 'transform 0.75s cubic-bezier(0.22, 0.7, 0.12, 1)';
+    // Freeze the rise animation where it ended, then fly from there.
     const base = getComputedStyle(cardEl).transform;
     const m = new DOMMatrix(base === 'none' ? undefined : base);
+    cardEl.style.animation = 'none';
+    cardEl.style.transform = `translate(${m.e}px, ${m.f}px)`;
+    void cardEl.offsetWidth;
+    cardEl.style.transformOrigin = '0 0';
+    cardEl.style.transition = reduced ? 'none' : 'transform 0.8s cubic-bezier(0.22, 0.7, 0.12, 1)';
     const dx = target.left - from.left;
     const dy = target.top - from.top;
     cardEl.style.transform = `translate(${m.e + dx}px, ${m.f + dy}px) scale(${k})`;
@@ -188,6 +212,7 @@ async function main() {
     await wait(260);
     wrap.hidden = true;
     hint.textContent = 'Tap the card to open it';
+    viewer.sweep();
     (stage.querySelector('.cv') as HTMLElement | null)?.focus({ preventScroll: true });
   };
   seal.addEventListener('click', openIt);

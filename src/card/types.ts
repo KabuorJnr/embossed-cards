@@ -1,4 +1,5 @@
 export type HandId = 'caveat' | 'pinyon' | 'bodoni';
+export type ConfettiKind = 'petal' | 'star' | 'flake' | 'bead';
 
 /** One sheet of material on a card face. Layers stack and lift toward the viewer. */
 export interface Layer {
@@ -42,6 +43,8 @@ export interface Design {
   /** Ink colour for the handwritten message. */
   ink: string;
   envelope: { body: string; liner: string; seal: string; ink: string };
+  /** What drifts down when the card is first opened. */
+  confetti?: { kind: ConfettiKind; colors: string[] };
   cover(o: RenderOptions): Layer[];
   insideLeft(o: RenderOptions): Layer[];
   /** Small motif printed under the message, drawn in a 60 x 60 box. */

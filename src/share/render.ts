@@ -1,14 +1,14 @@
+import bodoniItalicUrl from '@fontsource/bodoni-moda/files/bodoni-moda-latin-400-italic.woff2?url';
 import marcellusUrl from '@fontsource/marcellus/files/marcellus-latin-400-normal.woff2?url';
 import type { CardContent } from '../card/viewer';
 import type { Design, Layer } from '../card/types';
 
 const NS = 'http://www.w3.org/2000/svg';
 let thumbCount = 0;
-let marcellusData: Promise<string> | null = null;
+let faces: Promise<string> | null = null;
 
-/** The cover face's font, inlined so standalone SVG images render the words correctly. */
-function marcellusFace(): Promise<string> {
-  marcellusData ??= fetch(marcellusUrl)
+function inline(url: string): Promise<string> {
+  return fetch(url)
     .then((r) => r.blob())
     .then(
       (b) =>
@@ -17,10 +17,19 @@ function marcellusFace(): Promise<string> {
           fr.onload = () => res(String(fr.result));
           fr.readAsDataURL(b);
         }),
+    );
+}
+
+/** The cover fonts, inlined so standalone SVG images render cover words correctly. */
+function coverFaces(): Promise<string> {
+  faces ??= Promise.all([inline(marcellusUrl), inline(bodoniItalicUrl)])
+    .then(
+      ([m, b]) =>
+        `@font-face{font-family:Marcellus;src:url(${m}) format('woff2');}` +
+        `@font-face{font-family:'Bodoni Moda';font-style:italic;font-weight:400;src:url(${b}) format('woff2');}`,
     )
-    .then((data) => `@font-face{font-family:Marcellus;src:url(${data}) format('woff2');}`)
     .catch(() => '');
-  return marcellusData;
+  return faces;
 }
 
 /** Flatten a stack of layers into one standalone SVG. */
@@ -36,7 +45,7 @@ const toDataUrl = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURI
 /** Cover artwork as an image URL, for thumbnails and the envelope. */
 export async function coverImage(design: Design, cover: string): Promise<string> {
   const layers = design.cover({ uid: `t${++thumbCount}`, cover });
-  const font = design.coverText ? await marcellusFace() : '';
+  const font = design.coverText ? await coverFaces() : '';
   return toDataUrl(flatten(design, layers, font));
 }
 
@@ -97,7 +106,7 @@ export async function cardPicture(design: Design, content: CardContent): Promise
   const hand = HAND_FONT[content.hand];
   await Promise.all([document.fonts.load(hand.css(40)), document.fonts.load('400 20px "Hanken Grotesk"')]);
 
-  const font = design.coverText ? await marcellusFace() : '';
+  const font = design.coverText ? await coverFaces() : '';
   const coverSvg = flatten(design, design.cover({ uid: `x${++thumbCount}`, cover: content.cover }), font);
   const pageSvg = flatten(design, [
     {

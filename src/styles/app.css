@@ -60,9 +60,12 @@
 .dock {
   position: absolute;
   z-index: 10;
-  left: calc((100% - var(--panel-w)) / 2);
+  /* Centred without left: 50%, which would cap its width at half the screen. */
+  left: 0;
+  right: var(--panel-w);
+  margin: 0 auto;
+  width: max-content;
   bottom: calc(22px + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -74,9 +77,9 @@
   box-shadow:
     0 0 0 1px rgba(30, 20, 10, 0.06),
     0 12px 32px -14px rgba(30, 20, 10, 0.3);
-  max-width: calc(100% - 20px);
+  max-width: calc(100% - var(--panel-w) - 20px);
   transition:
-    left 0.5s var(--ease),
+    right 0.5s var(--ease),
     opacity 0.3s,
     transform 0.4s var(--ease);
 }
@@ -453,8 +456,10 @@
     top: 52px;
   }
   .dock {
-    left: 50%;
-    width: calc(100% - 16px);
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-width: none;
     bottom: calc(10px + env(safe-area-inset-bottom));
     padding: 6px;
     gap: 2px;
@@ -462,6 +467,9 @@
   .dock-designs {
     flex: 1;
     min-width: 0;
+    /* Fade the edge so it is clear there are more designs to scroll to. */
+    -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
+    mask-image: linear-gradient(90deg, #000 85%, transparent);
   }
   .dock-rule {
     display: none;
@@ -489,11 +497,13 @@
     bottom: min(62svh, 560px);
     top: 44px;
   }
+  .studio.is-composing .dock {
+    transform: translateY(20px);
+  }
   .studio.is-composing .dock,
   .studio.is-composing .hint {
     opacity: 0;
     pointer-events: none;
-    transform: translate(-50%, 20px);
   }
   .is-composing .top {
     opacity: 0;

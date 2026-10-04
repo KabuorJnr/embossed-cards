@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Design preview</title>
+<style>html,body{margin:0;height:100%;background:#fff}#stage{position:relative;width:100vw;height:100vh}</style></head>
+<body><div id="stage"></div>
+<script type="module">
+// Developer preview: /dev/preview.html?d=<design id>&open=1
+import '../src/fonts.ts';
+import '../src/styles/card.css';
+import { CardViewer } from '../src/card/viewer.ts';
+import { designById } from '../src/card/designs/index.ts';
+const q = new URLSearchParams(location.search);
+const d = designById(q.get('d') ?? 'frangipani');
+const v = new CardViewer(document.getElementById('stage'), { toggleOnClick: true, celebrate: true });
+v.render(d, { cover: d.coverText?.default ?? '', message: d.defaultMessage, hand: d.hand, to: 'Amani', from: 'With love, Rooney' });
+await document.fonts.ready;
+if (q.get('open')) v.setOpen(true, { ceremony: q.get('open') === 'party' });
+window.v = v;
+</script></body></html>

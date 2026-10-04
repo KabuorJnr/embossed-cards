@@ -1,6 +1,7 @@
 import {
   debossFilter,
   embossFilter,
+  type FoilTone,
   glitterFilter,
   goldGradient,
   goldLeafFilter,
@@ -11,7 +12,7 @@ import {
 
 export interface DefsOptions {
   paper?: { grain?: number; relief?: number; seed?: number };
-  gold?: 'gold' | 'rose' | 'silver';
+  gold?: FoilTone;
   leaf?: boolean;
   glitter?: number;
   wc?: string;

@@ -7,7 +7,8 @@ Digital cards that feel like paper. Choose a layered card with gold leaf, glitte
 - **Every design is drawn in code.** Paper grain, gold leaf, glitter, watercolour and letterpress are SVG filters, so the artwork is original and needs no licensed images.
 - **Real depth.** Each card is a stack of paper layers in 3D. Die cuts sit higher than the card, so they move against it as you tilt.
 - **Light that moves.** Foil and glitter catch a moving highlight that follows the mouse, a finger, or the phone's motion sensor.
-- **Opens like a book.** Tap the card and the cover swings open to the handwritten insert. The back of any die cut shows through on the inside.
+- **Opens like a book.** The cover peels up, swings over and settles while its shadow slides off the page. The message writes itself in word by word, and each design throws its own confetti: petals, foil flakes, stars or beads.
+- **A real envelope.** The wax seal glints, cracks into shards, the flap flexes open and the card floats out on a breath of confetti.
 - **No server, no database.** The whole card is compressed into the part of the link after `#`, which browsers never send to a server. Nothing to store, nothing to leak.
 
 ## Designs
@@ -19,6 +20,11 @@ Digital cards that feel like paper. Choose a layered card with gold leaf, glitte
 | Letterpress | Cotton card, painted frangipani spray, gold foil words pressed in (editable) |
 | Acacia dusk | Layered paper savannah with giraffes, gold leaf sun, parallax between layers |
 | Kanga | Kanga print with korosho motifs in gold and its saying on the hem (editable) |
+| Holo night | Iridescent foil moon and constellation that shift colour as you tilt, blind embossed orbits (editable words) |
+| Paper bloom | White on white: five stacked sheets of cut petals forming a deep paper rose |
+| Monogram | Wine card with their initials blind embossed inside a gold foil laurel (editable initials) |
+| Deco | Black card, copper foil sunburst, blind debossed rays (editable words) |
+| Beadwork | Red plaid shuka with a raised bead collar that glints as you tilt |
 
 Designs live in `src/card/designs/`. Each returns layers of SVG plus optional foil and glitter shapes; the viewer handles depth, light and opening.
 

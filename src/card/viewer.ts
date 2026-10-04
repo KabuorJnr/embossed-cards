@@ -1,3 +1,4 @@
+import { Confetti } from './confetti';
 import { escapeXml } from './shapes';
 import { sparkleTexture } from './sparkle';
 import type { Design, HandId, Layer } from './types';
@@ -17,7 +18,16 @@ export interface ViewerOptions {
   idleSway?: boolean;
   /** Fraction of the stage the card may fill. */
   fill?: number;
+  /** Shower the design's confetti when someone opens the card themselves. */
+  celebrate?: boolean;
   onToggle?: (open: boolean) => void;
+}
+
+export interface OpenOptions {
+  /** Opened by a person rather than the showcase. */
+  fromUser?: boolean;
+  /** Play the full choreography: lift, shadow sweep, handwriting, confetti. */
+  ceremony?: boolean;
 }
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -53,6 +63,9 @@ export class CardViewer {
   private gyroBase: { b: number; g: number } | null = null;
   private resizeObs: ResizeObserver;
   private disposers: (() => void)[] = [];
+  private fx: Confetti;
+  private sweepStart = -1;
+  private timers: number[] = [];
 
   constructor(
     private host: HTMLElement,
@@ -69,15 +82,17 @@ export class CardViewer {
             <div class="cv-face cv-back"></div>
           </div>
         </div>
-      </div>`;
+      </div>
+      <canvas class="cv-fx" aria-hidden="true"></canvas>`;
     this.tilt = this.root.querySelector('.cv-tilt')!;
     this.book = this.root.querySelector('.cv-book')!;
+    this.fx = new Confetti(this.root.querySelector('.cv-fx')!);
     host.appendChild(this.root);
 
     if (opts.toggleOnClick) {
       this.root.tabIndex = 0;
       this.root.setAttribute('role', 'button');
-      const toggle = () => this.setOpen(!this.isOpen, true);
+      const toggle = () => this.setOpen(!this.isOpen, { fromUser: true, ceremony: opts.celebrate });
       this.root.addEventListener('click', toggle);
       this.root.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -166,7 +181,12 @@ export class CardViewer {
 
     const silhouettes = coverLayers.filter((l) => l.overhang).map((l) => this.silhouette(l));
     const inside = design.insideLeft({ uid: `${uid}L`, cover: content.cover });
-    back.replaceChildren(...silhouettes, this.edge(), ...inside.map((l, i) => this.layer(l, `${uid}b${i}`, i === 0)));
+    back.replaceChildren(
+      ...silhouettes,
+      this.edge(),
+      ...inside.map((l, i) => this.layer(l, `${uid}b${i}`, i === 0)),
+      this.shade('cv-shade-back'),
+    );
 
     const paperId = `${uid}rp`;
     right.innerHTML = '';
@@ -185,7 +205,7 @@ export class CardViewer {
       `${uid}r`,
       true,
     );
-    right.append(paper);
+    right.append(paper, this.shade('cv-shade-right'));
 
     this.insertEl = document.createElement('div');
     this.insertEl.className = 'cv-insert';
@@ -207,10 +227,26 @@ export class CardViewer {
   /** Update the handwriting inside without rebuilding the artwork. */
   setWords(content: CardContent) {
     this.content = content;
-    this.insertEl.className = `cv-insert hand-${content.hand}`;
-    this.msgEl.textContent = content.message;
+    const writing = this.insertEl.classList.contains('is-writing');
+    this.insertEl.className = `cv-insert hand-${content.hand}${writing ? ' is-writing' : ''}`;
+    // Each word is its own span so the message can be written in, word by word.
+    const words = content.message.split(/(\s+)/);
+    const count = words.filter((w) => w.trim()).length;
+    const step = Math.min(70, 1500 / Math.max(1, count));
+    let i = 1;
+    this.msgEl.replaceChildren(
+      ...words.map((w) => {
+        if (!w.trim()) return document.createTextNode(w);
+        const span = document.createElement('span');
+        span.className = 'w';
+        span.textContent = w;
+        span.style.setProperty('--d', `${Math.round(i++ * step)}ms`);
+        return span;
+      }),
+    );
     this.toEl.textContent = content.to ? `${content.to},` : '';
     this.fromEl.textContent = content.from;
+    this.insertEl.style.setProperty('--end', `${Math.round(i * step)}ms`);
     const len = content.message.length;
     const scale = len < 40 ? 1.12 : len < 80 ? 1 : len < 140 ? 0.86 : len < 220 ? 0.74 : len < 320 ? 0.64 : 0.56;
     this.insertEl.style.setProperty('--msg', String(scale));
@@ -223,17 +259,71 @@ export class CardViewer {
     if (this.isOpen) this.book.classList.add('is-open');
   }
 
-  setOpen(open: boolean, fromUser = false) {
+  setOpen(open: boolean, o: OpenOptions | boolean = {}) {
+    const opt: OpenOptions = typeof o === 'boolean' ? { fromUser: o } : o;
     if (open === this.isOpen) return;
     this.isOpen = open;
+    this.timers.forEach(clearTimeout);
+    this.timers = [];
+    const calm = reducedMotion();
+    this.book.classList.remove('is-opening', 'is-closing');
+    if (!calm) {
+      // Restart the keyframes even if the previous run has not finished.
+      void this.book.offsetWidth;
+      this.book.classList.add(open ? 'is-opening' : 'is-closing');
+      this.timers.push(window.setTimeout(() => this.book.classList.remove('is-opening', 'is-closing'), 1500));
+    }
     this.book.classList.toggle('is-open', open);
+    if (open && !calm) {
+      this.insertEl.classList.remove('is-writing');
+      void this.insertEl.offsetWidth;
+      this.insertEl.classList.add('is-writing');
+      // Stop writing in once it has played, so later edits appear instantly.
+      const end = parseFloat(this.insertEl.style.getPropertyValue('--end')) || 0;
+      this.timers.push(window.setTimeout(() => this.insertEl.classList.remove('is-writing'), 2300 + end));
+      if (opt.ceremony) {
+        // Confetti as the cover passes upright, light sweeping as it lands.
+        this.timers.push(window.setTimeout(() => this.celebrate(), 430));
+        this.timers.push(window.setTimeout(() => this.sweep(), 900));
+      }
+    }
     this.fit();
     this.label();
-    if (fromUser) this.opts.onToggle?.(open);
+    if (opt.fromUser) this.opts.onToggle?.(open);
+  }
+
+  /** A single sweep of light across the foil, as if the card was turned toward a lamp. */
+  sweep() {
+    if (reducedMotion()) return;
+    this.sweepStart = performance.now();
+    this.wake();
+  }
+
+  /** Throw the design's confetti from the fold of the card. */
+  celebrate(shape: 'fountain' | 'bloom' = 'fountain') {
+    if (!this.design) return;
+    const conf = this.design.confetti ?? { kind: 'flake' as const, colors: ['#f3d98d', '#d9b25a', '#ecd08a'] };
+    const root = this.root.getBoundingClientRect();
+    const book = this.book.getBoundingClientRect();
+    // When open, the fold sits at the left edge of the right page.
+    const x = (this.isOpen ? book.left : book.left + book.width / 2) - root.left;
+    const y = book.top + book.height * 0.45 - root.top;
+    this.fx.burst({
+      ...conf,
+      x,
+      y,
+      count: 96,
+      power: shape === 'bloom' ? 9 : 12,
+      width: book.width * 0.12,
+      height: book.height * 0.55,
+      shape,
+    });
   }
 
   destroy() {
     cancelAnimationFrame(this.raf);
+    this.fx.stop();
+    this.timers.forEach(clearTimeout);
     this.resizeObs.disconnect();
     this.disposers.forEach((d) => d());
     this.root.remove();
@@ -283,6 +373,10 @@ export class CardViewer {
     this.book.style.setProperty('--tx', `${tx.toFixed(1)}px`);
   }
 
+  private wake() {
+    if (!this.raf) this.raf = requestAnimationFrame(this.loop);
+  }
+
   private loop(t: number) {
     this.raf = requestAnimationFrame(this.loop);
     const idle = this.opts.idleSway && !reducedMotion() && t - this.lastInput > 2600;
@@ -290,13 +384,23 @@ export class CardViewer {
     const ease = idle ? 0.04 : 0.09;
     const dx = goal.rx - this.cur.rx;
     const dy = goal.ry - this.cur.ry;
-    if (Math.abs(dx) < 0.005 && Math.abs(dy) < 0.005) return;
+    const sweeping = this.sweepStart >= 0;
+    if (Math.abs(dx) < 0.005 && Math.abs(dy) < 0.005 && !sweeping) return;
     this.cur.rx += dx * ease;
     this.cur.ry += dy * ease;
     const { rx, ry } = this.cur;
     this.tilt.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
-    const mx = ry / 15;
-    const my = -rx / 11;
+    let mx = ry / 15;
+    let my = -rx / 11;
+    if (sweeping) {
+      // Carry the highlight from one corner to the other, easing in and out.
+      const k = Math.min(1, (t - this.sweepStart) / 1400);
+      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      const pull = Math.sin(k * Math.PI);
+      mx = mx * (1 - pull) + (-1.6 + e * 3.2) * pull;
+      my = my * (1 - pull) + (-1 + e * 2) * pull;
+      if (k >= 1) this.sweepStart = -1;
+    }
     this.root.style.setProperty('--mx', mx.toFixed(3));
     this.root.style.setProperty('--my', my.toFixed(3));
     if (!this.design) return;
@@ -311,6 +415,13 @@ export class CardViewer {
         `translate(${(-mx * 38 + 70).toFixed(1)} ${(-my * 31 + 40).toFixed(1)}) rotate(37)`,
       );
     }
+  }
+
+  /** Shadow cast by the moving cover onto the page beneath it. */
+  private shade(className: string) {
+    const d = document.createElement('div');
+    d.className = `cv-shade ${className}`;
+    return d;
   }
 
   /** The visible paper edge and the shadow under it. */
@@ -340,15 +451,33 @@ export class CardViewer {
     if (l.sheen) {
       const tone = l.sheenTone ?? '#ffffff';
       const { w, h } = this.design;
+      const stops: [number, string, number][] =
+        tone === 'holo'
+          ? // Iridescent foil: a rainbow that slides across as the card tilts.
+            [
+              [0, '#ff8ad8', 0],
+              [0.18, '#ff8ad8', 0],
+              [0.28, '#ff8ad8', 0.55],
+              [0.38, '#8fd3ff', 0.7],
+              [0.48, '#a6ffcb', 0.75],
+              [0.58, '#fff59a', 0.7],
+              [0.68, '#ffa98a', 0.55],
+              [0.78, '#c89bff', 0.45],
+              [0.88, '#c89bff', 0],
+              [1, '#c89bff', 0],
+            ]
+          : [
+              [0, tone, 0],
+              [0.4, tone, 0],
+              [0.48, tone, 0.85],
+              [0.52, tone, 0.9],
+              [0.6, tone, 0],
+              [1, tone, 0],
+            ];
       const s = this.svg(
-        'cv-sheen',
+        tone === 'holo' ? 'cv-sheen is-holo' : 'cv-sheen',
         `<defs><linearGradient id="${id}-sh" gradientUnits="userSpaceOnUse" x1="${-w * 0.1}" y1="${-h * 0.2}" x2="${w * 1.1}" y2="${h * 1.2}">
-          <stop offset="0" stop-color="${tone}" stop-opacity="0"/>
-          <stop offset="0.4" stop-color="${tone}" stop-opacity="0"/>
-          <stop offset="0.48" stop-color="${tone}" stop-opacity="0.85"/>
-          <stop offset="0.52" stop-color="${tone}" stop-opacity="0.9"/>
-          <stop offset="0.6" stop-color="${tone}" stop-opacity="0"/>
-          <stop offset="1" stop-color="${tone}" stop-opacity="0"/>
+          ${stops.map(([o, c, a]) => `<stop offset="${o}" stop-color="${c}" stop-opacity="${a}"/>`).join('')}
         </linearGradient></defs>
         <g fill="url(#${id}-sh)" stroke="url(#${id}-sh)" stroke-width="0">${l.sheen}</g>`,
       );

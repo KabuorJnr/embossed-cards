@@ -76,6 +76,7 @@ const content = (): CardContent => ({
 const viewer = new CardViewer(stage, {
   toggleOnClick: true,
   idleSway: true,
+  celebrate: true,
   onToggle: (open) => {
     stopShowcase();
     syncOpen(open);
@@ -144,6 +145,8 @@ function choose(id: string, keepOpen = viewer.open) {
     const on = s.dataset.id === id;
     s.setAttribute('aria-checked', String(on));
     s.tabIndex = on ? 0 : -1;
+    // Keep the chosen design in view in the scrolling dock, without moving the page.
+    if (on) designsEl.scrollTo({ left: s.offsetLeft - designsEl.offsetLeft - (designsEl.clientWidth - s.offsetWidth) / 2, behavior: reduced ? 'auto' : 'smooth' });
   }
   fillForm();
   persist();
