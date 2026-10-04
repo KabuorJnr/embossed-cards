@@ -33,16 +33,18 @@ npm run build    # production build in dist/
 
 ## Deploy
 
-Pushing to `main` runs `.github/workflows/deploy.yml`, which tests, builds and publishes the site to the `gh-pages` branch. GitHub Pages serves that branch at https://kabuorjnr.github.io/embossed-cards/. If the site ever stops updating, check that Settings, Pages, Source is set to **Deploy from a branch** with `gh-pages` selected.
+The site is hosted on Vercel, connected to this repository. Every push to `main` deploys to production automatically; Vercel detects Vite and runs `npm run build`.
 
-The build uses relative paths, so `dist/` also works on Vercel, Netlify or any static host.
+`.github/workflows/check.yml` runs the tests and a build on every push and pull request, so a broken change shows up before you rely on the deployment.
+
+The build uses relative paths, so `dist/` also works on any other static host.
 
 ## Before launch
 
 Edit `src/config/business.json`. Every page reads its business details from there:
 
 - `EMAIL`: a real contact address (currently a placeholder)
-- `SITE_URL`: the final public address, used for link previews
+- `SITE_URL`: the public production address, used for link previews (set to the default Vercel address; change it if you add a custom domain)
 - `UPDATED`: the date the policies last changed
 
 ## Compliance checklist
