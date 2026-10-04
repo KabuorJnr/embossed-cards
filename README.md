@@ -33,7 +33,7 @@ npm run build    # production build in dist/
 
 ## Deploy
 
-Pushing to `main` runs `.github/workflows/deploy.yml`, which tests, builds and publishes to GitHub Pages. In the repository settings, under Pages, set the source to **GitHub Actions** once.
+Pushing to `main` runs `.github/workflows/deploy.yml`, which tests, builds and publishes the site to the `gh-pages` branch. GitHub Pages serves that branch at https://kabuorjnr.github.io/embossed-cards/. If the site ever stops updating, check that Settings, Pages, Source is set to **Deploy from a branch** with `gh-pages` selected.
 
 The build uses relative paths, so `dist/` also works on Vercel, Netlify or any static host.
 
