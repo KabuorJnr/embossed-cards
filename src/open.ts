@@ -8,11 +8,19 @@ import { CardViewer, type CardContent } from './card/viewer';
 import { decodeCard } from './share/encode';
 import { cardPicture, coverImage } from './share/render';
 import { saveImage } from './share/share';
+import { burst, shower } from './ui/sparkles';
 import { toast } from './ui/toast';
 
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const wait = (ms: number) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
+const GOLD_DUST = ['#f3d98d', '#ffe9b0', '#ffffff', '#d9b25a'];
+
+/** Centre of an element on screen. */
+const centre = (el: Element) => {
+  const r = el.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2, r };
+};
 
 const scene = $('#scene');
 const stage = $('#stage');
@@ -86,6 +94,7 @@ async function main() {
       if (open && after.hidden) {
         after.hidden = false;
         requestAnimationFrame(() => after.classList.add('is-on'));
+        celebrate();
       }
     },
   });
@@ -103,7 +112,10 @@ async function main() {
   const initial = (name[0] ?? 'E').toUpperCase();
   const to = state.t.trim();
   wrap.innerHTML = `
+    <div class="env-ground" aria-hidden="true"></div>
+    <div class="env-float">
     <div class="envelope" id="envelope">
+      <div class="env-halo" aria-hidden="true"></div>
       <div class="env-back"></div>
       <div class="env-slot"><div class="env-card"><img alt="" id="env-img" /></div></div>
       <svg class="env-pocket" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
@@ -116,9 +128,11 @@ async function main() {
       <div class="env-flap" id="flap"><div class="flap-front"></div><div class="flap-back"></div></div>
       <button type="button" class="env-seal" id="seal" aria-label="Break the wax seal and open the envelope">
         <span class="seal-ring" aria-hidden="true"></span>
+        <span class="seal-glow" aria-hidden="true"></span>
         <span class="seal-half seal-l">${sealSvg(initial, 'sl')}</span>
         <span class="seal-half seal-r">${sealSvg(initial, 'sr')}</span>
       </button>
+    </div>
     </div>`;
   wrap.hidden = false;
   const envelope = $('#envelope');
@@ -136,11 +150,11 @@ async function main() {
     cw = (ch / h) * w;
     const ew = cw * 1.08;
     const eh = ch * 1.06;
-    envelope.style.setProperty('--ew', `${ew}px`);
-    envelope.style.setProperty('--eh', `${eh}px`);
-    envelope.style.setProperty('--cw', `${cw}px`);
-    envelope.style.setProperty('--ch', `${ch}px`);
-    envelope.style.setProperty('--rise', `${ch * 0.84}px`);
+    wrap.style.setProperty('--ew', `${ew}px`);
+    wrap.style.setProperty('--eh', `${eh}px`);
+    wrap.style.setProperty('--cw', `${cw}px`);
+    wrap.style.setProperty('--ch', `${ch}px`);
+    wrap.style.setProperty('--rise', `${ch * 0.84}px`);
     // Image includes the die cut bleed around the card.
     img.style.width = `${(cw * (w + 2 * b)) / w}px`;
     img.style.left = `${(-cw * b) / w}px`;
@@ -154,17 +168,46 @@ async function main() {
   document.body.classList.add('is-ready');
 
   const seal = $<HTMLButtonElement>('#seal');
+  const confetti = design.confetti ?? [env.liner, env.seal, '#f3d98d', '#ffffff'];
+
+  /** Gold dust drifting up out of the envelope while the card slides free. */
+  const trickle = (ms: number) => {
+    const until = performance.now() + ms;
+    const tick = () => {
+      const { x, r } = centre(envelope);
+      burst({ x, y: r.top + 6, width: r.width * 0.8, count: 3, colors: GOLD_DUST, angle: -Math.PI / 2, spread: 0.5, speed: [0.5, 1.8], size: [1, 2.6], life: [900, 1500] });
+      if (performance.now() < until) setTimeout(tick, 110);
+    };
+    tick();
+  };
+
   const openIt = async () => {
     seal.disabled = true;
     void CardViewer.requestMotion();
     hint.textContent = '';
+    wrap.classList.add('is-opening');
+
+    // A thumb presses the wax, then it cracks.
+    envelope.classList.add('is-pressing');
+    await wait(170);
+    envelope.classList.remove('is-pressing');
     envelope.classList.add('is-breaking');
+    const s = centre(seal);
+    burst({ x: s.x, y: s.y, count: 16, colors: [env.seal, shade(env.seal, -0.16), shade(env.seal, 0.12)], kinds: ['crumb'], angle: -Math.PI / 2, spread: 1.4, speed: [2.5, 6], size: [1.6, 3.6], life: [900, 1300] });
+    burst({ x: s.x, y: s.y, count: 22, colors: GOLD_DUST, spread: Math.PI, speed: [1, 4.5], life: [700, 1300] });
     await wait(420);
+
+    // The flap lifts and light spills out of the envelope.
     envelope.classList.add('is-flap-open');
+    {
+      const { x, r } = centre(envelope);
+      burst({ x, y: r.top + 4, width: r.width * 0.7, count: 20, colors: GOLD_DUST, kinds: ['glint', 'dust'], angle: -Math.PI / 2, spread: 0.9, speed: [1, 3.4], life: [1000, 1800] });
+    }
     await wait(380);
     envelope.classList.add('is-flap-behind');
     await wait(420);
     envelope.classList.add('is-rising');
+    trickle(900);
     await wait(1150);
 
     // Hand over from the flat picture to the live, tilting card.
@@ -176,20 +219,46 @@ async function main() {
     envelope.classList.add('is-leaving');
     const k = target.width / from.width;
     cardEl.style.transformOrigin = '0 0';
-    cardEl.style.transition = reduced ? 'none' : 'transform 0.75s cubic-bezier(0.22, 0.7, 0.12, 1)';
+    cardEl.style.transition = reduced ? 'none' : 'transform 0.85s cubic-bezier(0.22, 0.7, 0.12, 1)';
     const base = getComputedStyle(cardEl).transform;
     const m = new DOMMatrix(base === 'none' ? undefined : base);
     const dx = target.left - from.left;
     const dy = target.top - from.top;
     cardEl.style.transform = `translate(${m.e + dx}px, ${m.f + dy}px) scale(${k})`;
-    await wait(760);
+    await wait(860);
     document.body.classList.add('is-revealed');
     stage.inert = false;
+    const c = centre(book);
+    burst({ x: c.x, y: c.y, width: c.r.width * 1.1, height: c.r.height * 1.05, count: 34, colors: GOLD_DUST, kinds: ['glint', 'dust'], spread: Math.PI, speed: [0.2, 1.2], life: [900, 1800], gravity: -0.01 });
     await wait(260);
     wrap.hidden = true;
     hint.textContent = 'Tap the card to open it';
     (stage.querySelector('.cv') as HTMLElement | null)?.focus({ preventScroll: true });
+    invite();
   };
+
+  /** Lift the cover's edge now and then until they open it. */
+  let peeks = 0;
+  const invite = () => {
+    setTimeout(function nudge() {
+      if (viewer.open || peeks >= 3) return;
+      viewer.peek();
+      peeks++;
+      setTimeout(nudge, 4600);
+    }, 1500);
+  };
+
+  let celebrated = false;
+  function celebrate() {
+    if (celebrated) return;
+    celebrated = true;
+    setTimeout(() => {
+      const r = viewer.spine();
+      burst({ x: r.left, y: r.top + r.height / 2, height: r.height * 0.9, count: 30, colors: GOLD_DUST, kinds: ['glint', 'dust'], spread: Math.PI, speed: [0.8, 3.5], life: [900, 1700] });
+      shower(confetti);
+    }, 650);
+  }
+
   seal.addEventListener('click', openIt);
   // The whole envelope opens on tap too; the seal is just the obvious place.
   envelope.addEventListener('click', (e) => {

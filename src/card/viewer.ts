@@ -25,6 +25,31 @@ let counter = 0;
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+type Stop = [number, string, number];
+
+/** A narrow band of light, as on a pressed foil. */
+const PLAIN_SHEEN = (tone: string): Stop[] => [
+  [0, tone, 0],
+  [0.4, tone, 0],
+  [0.48, tone, 0.85],
+  [0.52, tone, 0.9],
+  [0.6, tone, 0],
+  [1, tone, 0],
+];
+
+/** Holographic foil splits the band of light into a rainbow that slides as the card tilts. */
+const HOLO_SHEEN: Stop[] = [
+  [0, '#ffffff', 0],
+  [0.3, '#ff9fd8', 0],
+  [0.37, '#ff9fd8', 0.75],
+  [0.43, '#ffe58f', 0.85],
+  [0.49, '#a6ffcf', 0.9],
+  [0.55, '#8fd5ff', 0.85],
+  [0.61, '#c9a2ff', 0.75],
+  [0.68, '#c9a2ff', 0],
+  [1, '#ffffff', 0],
+];
+
 interface Overlay {
   sheen?: SVGGradientElement;
   patterns: SVGPatternElement[];
@@ -53,6 +78,7 @@ export class CardViewer {
   private gyroBase: { b: number; g: number } | null = null;
   private resizeObs: ResizeObserver;
   private disposers: (() => void)[] = [];
+  private turnTimer = 0;
 
   constructor(
     private host: HTMLElement,
@@ -166,7 +192,12 @@ export class CardViewer {
 
     const silhouettes = coverLayers.filter((l) => l.overhang).map((l) => this.silhouette(l));
     const inside = design.insideLeft({ uid: `${uid}L`, cover: content.cover });
-    back.replaceChildren(...silhouettes, this.edge(), ...inside.map((l, i) => this.layer(l, `${uid}b${i}`, i === 0)));
+    back.replaceChildren(
+      ...silhouettes,
+      this.edge(),
+      ...inside.map((l, i) => this.layer(l, `${uid}b${i}`, i === 0)),
+      this.shade('cv-gutter'),
+    );
 
     const paperId = `${uid}rp`;
     right.innerHTML = '';
@@ -185,7 +216,7 @@ export class CardViewer {
       `${uid}r`,
       true,
     );
-    right.append(paper);
+    right.append(paper, this.shade('cv-cast'), this.shade('cv-gutter'));
 
     this.insertEl = document.createElement('div');
     this.insertEl.className = 'cv-insert';
@@ -226,13 +257,34 @@ export class CardViewer {
   setOpen(open: boolean, fromUser = false) {
     if (open === this.isOpen) return;
     this.isOpen = open;
+    this.book.classList.remove('is-peek');
+    // Restart the lift so the cover rises off the page on every turn.
+    this.book.classList.remove('is-turning');
+    void this.book.offsetWidth;
+    this.book.classList.add('is-turning');
+    clearTimeout(this.turnTimer);
+    this.turnTimer = window.setTimeout(() => this.book.classList.remove('is-turning'), 1300);
     this.book.classList.toggle('is-open', open);
     this.fit();
     this.label();
     if (fromUser) this.opts.onToggle?.(open);
   }
 
+  /** Lift the corner of the closed cover for a moment, a hint that it opens. */
+  peek() {
+    if (this.isOpen || reducedMotion()) return;
+    this.book.classList.remove('is-peek');
+    void this.book.offsetWidth;
+    this.book.classList.add('is-peek');
+  }
+
+  /** Where the fold sits on screen, for effects that start from the spine. */
+  spine(): DOMRect {
+    return this.book.querySelector('.cv-right')!.getBoundingClientRect();
+  }
+
   destroy() {
+    clearTimeout(this.turnTimer);
     cancelAnimationFrame(this.raf);
     this.resizeObs.disconnect();
     this.disposers.forEach((d) => d());
@@ -313,6 +365,13 @@ export class CardViewer {
     }
   }
 
+  /** Light and shadow that change as the cover turns. */
+  private shade(className: string) {
+    const d = document.createElement('div');
+    d.className = `cv-shade ${className}`;
+    return d;
+  }
+
   /** The visible paper edge and the shadow under it. */
   private edge() {
     const d = document.createElement('div');
@@ -340,15 +399,13 @@ export class CardViewer {
     if (l.sheen) {
       const tone = l.sheenTone ?? '#ffffff';
       const { w, h } = this.design;
+      const stops = (tone === 'holo' ? HOLO_SHEEN : PLAIN_SHEEN(tone))
+        .map(([o, c, a]) => `<stop offset="${o}" stop-color="${c}" stop-opacity="${a}"/>`)
+        .join('');
       const s = this.svg(
-        'cv-sheen',
+        `cv-sheen${tone === 'holo' ? ' is-holo' : ''}`,
         `<defs><linearGradient id="${id}-sh" gradientUnits="userSpaceOnUse" x1="${-w * 0.1}" y1="${-h * 0.2}" x2="${w * 1.1}" y2="${h * 1.2}">
-          <stop offset="0" stop-color="${tone}" stop-opacity="0"/>
-          <stop offset="0.4" stop-color="${tone}" stop-opacity="0"/>
-          <stop offset="0.48" stop-color="${tone}" stop-opacity="0.85"/>
-          <stop offset="0.52" stop-color="${tone}" stop-opacity="0.9"/>
-          <stop offset="0.6" stop-color="${tone}" stop-opacity="0"/>
-          <stop offset="1" stop-color="${tone}" stop-opacity="0"/>
+          ${stops}
         </linearGradient></defs>
         <g fill="url(#${id}-sh)" stroke="url(#${id}-sh)" stroke-width="0">${l.sheen}</g>`,
       );

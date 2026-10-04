@@ -5,13 +5,14 @@ import {
   goldGradient,
   goldLeafFilter,
   liftFilter,
+  type FoilTone,
   paperFilter,
   watercolorFilter,
 } from '../filters';
 
 export interface DefsOptions {
   paper?: { grain?: number; relief?: number; seed?: number };
-  gold?: 'gold' | 'rose' | 'silver';
+  gold?: FoilTone;
   leaf?: boolean;
   glitter?: number;
   wc?: string;

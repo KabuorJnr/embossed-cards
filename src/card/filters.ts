@@ -131,11 +131,16 @@ export const debossFilter = (id: string, depth = 1.4, light = 0.7, dark = 0.34) 
 </filter>`;
 
 /** Gold gradient used as the base colour of foil and leaf. */
-export const goldGradient = (id: string, tone: 'gold' | 'rose' | 'silver' = 'gold') => {
+export type FoilTone = 'gold' | 'rose' | 'silver' | 'copper' | 'holo';
+
+export const goldGradient = (id: string, tone: FoilTone = 'gold') => {
   const stops = {
     gold: ['#7d5a1c', '#d9b25a', '#a97b26', '#f3d98d', '#b98a32', '#ecd08a', '#8c661f'],
     rose: ['#8a4d45', '#e3a796', '#b06e61', '#f6cfc2', '#c08274', '#f0bfb0', '#93574c'],
     silver: ['#6f747c', '#d9dde3', '#9aa0a8', '#f5f7fa', '#a9afb7', '#e6e9ee', '#7b8189'],
+    copper: ['#6e3519', '#d9895a', '#9c4f27', '#f4b98d', '#a85a30', '#e8a073', '#7a3c1d'],
+    // Holographic foil: silver that splits light into pale rainbow bands.
+    holo: ['#b8b4d8', '#f4c9e4', '#c3e6f4', '#f8f0c8', '#cfc0f2', '#bfeedc', '#e6c4ee'],
   }[tone];
   return `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1">${stops
     .map((c, i) => `<stop offset="${(i / (stops.length - 1)).toFixed(3)}" stop-color="${c}"/>`)

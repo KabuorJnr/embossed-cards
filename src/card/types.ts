@@ -8,7 +8,7 @@ export interface Layer {
   depth: number;
   /** Shapes that catch moving light like foil. Fill and stroke are supplied by the viewer. */
   sheen?: string;
-  /** Highlight colour for the moving foil light. */
+  /** Highlight colour for the moving foil light, or 'holo' for a rainbow band. */
   sheenTone?: string;
   /** Shapes that twinkle like glitter as the card moves. */
   glitter?: string;
@@ -42,6 +42,8 @@ export interface Design {
   /** Ink colour for the handwritten message. */
   ink: string;
   envelope: { body: string; liner: string; seal: string; ink: string };
+  /** Colours of the paper confetti and dust that greet the card when it opens. */
+  confetti?: string[];
   cover(o: RenderOptions): Layer[];
   insideLeft(o: RenderOptions): Layer[];
   /** Small motif printed under the message, drawn in a 60 x 60 box. */

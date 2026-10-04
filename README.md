@@ -7,7 +7,8 @@ Digital cards that feel like paper. Choose a layered card with gold leaf, glitte
 - **Every design is drawn in code.** Paper grain, gold leaf, glitter, watercolour and letterpress are SVG filters, so the artwork is original and needs no licensed images.
 - **Real depth.** Each card is a stack of paper layers in 3D. Die cuts sit higher than the card, so they move against it as you tilt.
 - **Light that moves.** Foil and glitter catch a moving highlight that follows the mouse, a finger, or the phone's motion sensor.
-- **Opens like a book.** Tap the card and the cover swings open to the handwritten insert. The back of any die cut shows through on the inside.
+- **Opens like a book.** Tap the card and the cover lifts off the page and swings open to the handwritten insert, darkening as it turns away from the light and casting its shadow across the page. The back of any die cut shows through on the inside.
+- **An opening worth waiting for.** The envelope drifts down and floats while the name is written on. Pressing the wax seal cracks it in two with a flare of light and a scatter of wax, warm light spills out as the flap lifts, and gold dust trails the card as it slides free. The first time the card opens, paper confetti in the card's own colours falls across the page. All of it is skipped for people who prefer reduced motion.
 - **No server, no database.** The whole card is compressed into the part of the link after `#`, which browsers never send to a server. Nothing to store, nothing to leak.
 
 ## Designs
@@ -19,15 +20,19 @@ Digital cards that feel like paper. Choose a layered card with gold leaf, glitte
 | Letterpress | Cotton card, painted frangipani spray, gold foil words pressed in (editable) |
 | Acacia dusk | Layered paper savannah with giraffes, gold leaf sun, parallax between layers |
 | Kanga | Kanga print with korosho motifs in gold and its saying on the hem (editable) |
+| Deco | Emerald card, raised die cut arch frame, gold leaf sunburst, blind debossed lattice, gold foil words (editable) |
+| Midnight | Holographic foil moon, silver constellations, glitter shooting star, layered paper clouds past the edge (editable) |
+| Monstera | Four depths of cut paper monstera leaves with gold foil veins, words pressed into a gold leaf sun (editable) |
+| Lace | Laser cut ivory lace lifted over blush card, scalloped window ringed with pearls, gold foil words (editable) |
 
-Designs live in `src/card/designs/`. Each returns layers of SVG plus optional foil and glitter shapes; the viewer handles depth, light and opening.
+Designs live in `src/card/designs/`. Each returns layers of SVG plus optional foil and glitter shapes; the viewer handles depth, light and opening. Foil comes in gold, rose, silver, copper and holographic (`sheenTone: 'holo'` gives a rainbow band of light). `tests/designs.test.ts` checks that every design's SVG ids are unique and every reference resolves.
 
 ## Run it
 
 ```bash
 npm install
 npm run dev      # local site at http://localhost:5173
-npm test         # link encoding tests
+npm test         # link encoding and design tests
 npm run build    # production build in dist/
 ```
 

@@ -180,3 +180,97 @@
     transition-duration: 0.01ms;
   }
 }
+
+/* Turning the cover. --lit dims a face as it tilts away from the light. */
+@property --lit {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+.cv-front,
+.cv-back {
+  transition: --lit 1.15s cubic-bezier(0.32, 0.72, 0.12, 1);
+}
+.cv-front {
+  --lit: 1;
+}
+.cv-book.is-open .cv-front {
+  --lit: 0.55;
+}
+.cv-back {
+  --lit: 0.62;
+}
+.cv-book.is-open .cv-back {
+  --lit: 1;
+}
+.cv-back > .cv-layer,
+.cv-front > .cv-layer {
+  filter: brightness(var(--lit));
+}
+
+.cv-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0.7px);
+}
+/* The fold: a soft valley where the pages meet. */
+.cv-right > .cv-gutter {
+  background: linear-gradient(to right, rgba(40, 25, 15, 0.2), rgba(40, 25, 15, 0.06) 5%, rgba(40, 25, 15, 0) 13%);
+}
+.cv-back > .cv-gutter {
+  background: linear-gradient(to left, rgba(40, 25, 15, 0.22), rgba(40, 25, 15, 0.06) 5%, rgba(40, 25, 15, 0) 13%);
+}
+/* The cover's shadow sweeps back toward the fold as it swings open. */
+.cv-cast {
+  transform-origin: left center;
+  transform: translateZ(0.7px) scaleX(1);
+  opacity: 0.85;
+  background: linear-gradient(to right, rgba(40, 25, 15, 0.45), rgba(40, 25, 15, 0.12) 70%, rgba(40, 25, 15, 0));
+  transition:
+    transform 1.15s cubic-bezier(0.32, 0.72, 0.12, 1),
+    opacity 1.15s cubic-bezier(0.5, 0, 0.2, 1);
+}
+.cv-book.is-open .cv-cast {
+  transform: translateZ(0.7px) scaleX(0.02);
+  opacity: 0;
+}
+
+/* The cover rises off the page mid swing, as paper does. */
+.cv-book.is-turning .cv-cover {
+  animation: cv-lift 1.15s cubic-bezier(0.32, 0.72, 0.12, 1);
+}
+@keyframes cv-lift {
+  0% {
+    translate: 0 0 0;
+  }
+  42% {
+    translate: 0 0 calc(var(--s) * 34px);
+  }
+  100% {
+    translate: 0 0 0;
+  }
+}
+
+/* A corner lifts for a moment, inviting a tap. */
+.cv-book.is-peek .cv-cover {
+  animation: cv-peek 1.6s cubic-bezier(0.45, 0, 0.2, 1);
+}
+@keyframes cv-peek {
+  0%,
+  100% {
+    rotate: y 0deg;
+  }
+  38% {
+    rotate: y -19deg;
+  }
+  52% {
+    rotate: y -17deg;
+  }
+}
+
+.cv-sheen.is-holo {
+  opacity: 0.95;
+}
