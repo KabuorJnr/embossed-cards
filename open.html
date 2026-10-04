@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>A card for you, pressed with Embossed</title>
+    <meta name="description" content="Someone pressed a card for you. Tap the wax seal to open it." />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="A card for you" />
+    <meta property="og:description" content="Someone pressed a card for you. Tap the wax seal to open it." />
+    <meta property="og:image" content="%%SITE_URL%%og-envelope.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body class="opening">
+    <header class="top">
+      <a class="wordmark" href="./" aria-label="Embossed home">Embossed</a>
+    </header>
+
+    <main class="scene" id="scene">
+      <h1 class="sr-only" id="scene-title">A card for you</h1>
+      <div class="stage" id="stage" inert></div>
+      <div class="envelope-wrap" id="env-wrap" hidden></div>
+      <p class="hint" id="hint" aria-live="polite"></p>
+
+      <div class="after" id="after" hidden>
+        <a class="btn btn-press" id="reply" href="./">Write one back</a>
+        <button type="button" class="btn btn-quiet" id="save">Save as image</button>
+        <a class="btn btn-quiet" href="./">Make your own</a>
+      </div>
+
+      <div class="broken" id="broken" hidden>
+        <h2>This card link is incomplete</h2>
+        <p>Part of the link may have been cut off when it was copied. Ask the person who sent it to share it again, or make a card of your own.</p>
+        <a class="btn btn-press" href="./">Make a card</a>
+      </div>
+    </main>
+
+    <footer class="foot foot-slim">
+      <p>Pressed with %%BRAND%%. The words on this card live only in the link.</p>
+      <nav aria-label="Legal">
+        <a href="./legal/privacy.html">Privacy</a>
+        <a href="./legal/terms.html">Terms</a>
+        <a href="./legal/about.html">About</a>
+      </nav>
+    </footer>
+
+    <script type="module" src="./src/open.ts"></script>
+  </body>
+</html>

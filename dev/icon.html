@@ -1,0 +1,5 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0}
+.box{width:512px;height:512px;display:grid;place-items:center;background:#ffffff}
+.box img{width:var(--k);height:var(--k)}</style></head>
+<body><div class="box"><img src="../public/favicon.svg" alt=""></div>
+<script type="module">import '../src/fonts.ts'; const q=new URLSearchParams(location.search); document.querySelector('.box').style.setProperty('--k', (q.get('k')||'430')+'px'); await document.fonts.ready;</script></body></html>

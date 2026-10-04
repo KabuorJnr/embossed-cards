@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Accessibility | %%BRAND%%</title>
+    <meta name="description" content="How Embossed works for everyone." />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <header class="legal-top">
+      <a class="wordmark" href="../" aria-label="Embossed home">Embossed</a>
+      <a href="../">Make a card</a>
+    </header>
+    <main class="legal">
+      <h1>Accessibility</h1>
+      <p class="updated">Last updated %%UPDATED%%</p>
+<p class="lede">We want everyone to be able to make and open a card.</p>
+
+<h2>What we have done</h2>
+<ul>
+  <li>Everything works with a keyboard. The card opens with Enter or Space, and design choices move with the arrow keys.</li>
+  <li>Screen readers hear the card's design and, once it is open, the full message.</li>
+  <li>If your device asks for reduced motion, the card stops swaying, the showcase does not play and the envelope opens without animation.</li>
+  <li>Text and controls meet WCAG 2.1 AA contrast, and every control is at least 44 pixels tall.</li>
+  <li>Decorative artwork is hidden from screen readers so it does not get in the way.</li>
+</ul>
+
+<h2>Known limits</h2>
+<p>The foil and glitter effects respond to tilt, which needs motion access on some phones. The card still works fully without it.</p>
+
+<h2>Tell us</h2>
+<p>If something gets in your way, email <a href="mailto:%%EMAIL%%">%%EMAIL%%</a> and we will fix it.</p>
+    </main>
+    <footer class="foot">
+      <p>%%BRAND%%, %%LOCATION%%. <a href="mailto:%%EMAIL%%">%%EMAIL%%</a></p>
+      <nav aria-label="Legal">
+        <a href="./about.html">About</a>
+        <a href="./privacy.html">Privacy</a>
+        <a href="./terms.html">Terms</a>
+        <a href="./refunds.html">Refunds</a>
+        <a href="./cookies.html">Cookies</a>
+        <a href="./accessibility.html">Accessibility</a>
+        <a href="./delete-data.html">Delete my data</a>
+      </nav>
+    </footer>
+    <script type="module" src="../src/legal.ts"></script>
+  </body>
+</html>

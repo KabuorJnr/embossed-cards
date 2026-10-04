@@ -1,0 +1,35 @@
+{
+  "name": "embossed-cards",
+  "version": "0.1.0",
+  "description": "Embossed: design a layered, foil-pressed digital card, write inside it and send it with a link.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KabuorJnr/embossed-cards.git"
+  },
+  "author": "Rooney Odhiambo",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/KabuorJnr/embossed-cards/issues"
+  },
+  "homepage": "https://github.com/KabuorJnr/embossed-cards#readme",
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^6.4.3",
+    "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "@fontsource/bodoni-moda": "^5.3.0",
+    "@fontsource/caveat": "^5.3.0",
+    "@fontsource/hanken-grotesk": "^5.3.0",
+    "@fontsource/marcellus": "^5.3.0",
+    "@fontsource/pinyon-script": "^5.3.0"
+  },
+  "private": true,
+  "type": "module"
+}

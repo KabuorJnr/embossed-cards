@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#fff}#og{width:1200px;height:630px;position:relative;overflow:hidden;font-family:'Hanken Grotesk'}
+.t{position:absolute;left:84px;top:200px;font:400 92px/1 'Bodoni Moda';color:#1f1c19}
+.s{position:absolute;left:88px;top:318px;font:400 28px/1.4 'Hanken Grotesk';color:#5f5951;width:420px}
+img{position:absolute;filter:drop-shadow(0 18px 24px rgba(40,30,20,.28))}
+#icon{width:512px;height:512px;display:grid;place-items:center;background:#fff}
+</style></head><body><div id="og"><div class="t">Embossed</div><div class="s">Cards with gold leaf, glitter and letterpress, written and sent from your phone.</div></div>
+<script type="module">
+import '../src/fonts.ts';
+import { designById } from '../src/card/designs';
+import { coverImage } from '../src/share/render';
+const q = new URLSearchParams(location.search);
+const og = document.getElementById('og');
+const place = async (id, x, y, wpx, rot) => {
+  const d = designById(id);
+  const im = new Image(); im.src = await coverImage(d, d.coverText?.default ?? '');
+  const full = wpx * (d.w + 2*d.bleed) / d.w;
+  im.style.width = full+'px'; im.style.left = (x - (full-wpx)/2)+'px'; im.style.top = (y - d.bleed*wpx/d.w)+'px';
+  im.style.transform = `rotate(${rot}deg)`; og.append(im);
+};
+if (q.get('mode') === 'envelope') {
+  document.querySelector('.t').textContent = 'A card for you';
+  document.querySelector('.s').textContent = 'Someone pressed a card for you. Tap the wax seal to open it.';
+  await place('kanga', 790, 100, 230, -6); await place('frangipani', 900, 190, 240, 5);
+} else {
+  await place('acacia', 560, 170, 250, -8); await place('kanga', 760, 90, 210, 3); await place('frangipani', 880, 250, 250, 7);
+}
+await document.fonts.ready; document.body.dataset.ready = '1';
+</script></body></html>

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Embossed: send a card that feels pressed by hand</title>
+    <meta name="description" content="Choose a layered card with gold leaf, glitter and letterpress, write inside it in your own words, and send it to someone you love with a link." />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Embossed" />
+    <meta property="og:description" content="Layered, foil pressed cards you write and send from your phone." />
+    <meta property="og:image" content="%%SITE_URL%%og.png" />
+    <meta property="og:url" content="%%SITE_URL%%" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <a class="skip" href="#compose-open">Skip to writing your card</a>
+
+    <header class="top">
+      <a class="wordmark" href="./" aria-label="Embossed home">Embossed</a>
+      <nav aria-label="Page">
+        <a href="#how">How it works</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="studio" id="studio" aria-label="Card studio">
+        <h1 class="sr-only">Choose a card, write inside it and send it with a link</h1>
+        <div class="stage" id="stage"></div>
+        <p class="hint" id="hint">Tap the card to open it</p>
+
+        <div class="dock" role="toolbar" aria-label="Card controls">
+          <div class="dock-designs" id="designs" role="radiogroup" aria-label="Card designs"></div>
+          <span class="dock-rule" aria-hidden="true"></span>
+          <button type="button" class="dock-icon" id="toggle-open" aria-pressed="false" aria-label="Open the card">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5c2.6-.9 5.3-.6 8 .9v13c-2.7-1.5-5.4-1.8-8-.9zM12 6.4c2.7-1.5 5.4-1.8 8-.9v13c-2.6-.9-5.3-.6-8 .9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="dock-icon" id="toggle-play" aria-label="Pause the showcase" aria-pressed="false">
+            <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 6v12M15.5 6v12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+            <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6.2v11.6L18 12z" fill="currentColor"/></svg>
+          </button>
+          <button type="button" class="btn btn-press dock-write" id="compose-open">Write inside</button>
+        </div>
+
+        <aside class="panel" id="panel" aria-labelledby="compose-title" hidden>
+          <form class="compose" id="compose" novalidate>
+            <header class="panel-head">
+              <h2 id="compose-title" tabindex="-1">Write inside</h2>
+              <button type="button" class="dock-icon" data-close aria-label="Close and keep looking">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              </button>
+            </header>
+
+            <div class="field" id="cover-field">
+              <label for="f-cover" id="cover-label">Words on the cover</label>
+              <input id="f-cover" name="cover" maxlength="40" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label for="f-to">Who is it for?</label>
+              <input id="f-to" name="to" maxlength="40" placeholder="Their name" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label for="f-msg">Your message</label>
+              <textarea id="f-msg" name="message" maxlength="400" rows="4" aria-describedby="msg-count msg-error"></textarea>
+              <div class="field-foot">
+                <span class="error" id="msg-error" role="alert"></span>
+                <span class="count" id="msg-count"></span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="f-from">Sign it</label>
+              <input id="f-from" name="from" maxlength="60" placeholder="With love, your name" autocomplete="off" />
+            </div>
+            <fieldset class="hands">
+              <legend>Handwriting</legend>
+              <label><input type="radio" name="hand" value="caveat" /><span class="hand-caveat">Casual</span></label>
+              <label><input type="radio" name="hand" value="pinyon" /><span class="hand-pinyon">Script</span></label>
+              <label><input type="radio" name="hand" value="bodoni" /><span class="hand-bodoni">Classic</span></label>
+            </fieldset>
+            <button type="submit" class="btn btn-press btn-wide">Seal and send</button>
+          </form>
+
+          <div class="send" id="send" hidden>
+            <header class="panel-head">
+              <button type="button" class="dock-icon" id="send-back" aria-label="Back to writing">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <h2 id="send-title" tabindex="-1">Send your card</h2>
+              <button type="button" class="dock-icon" data-close aria-label="Close">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              </button>
+            </header>
+            <p class="send-lede" id="send-lede">It goes as a sealed envelope. They tap the wax seal to open it.</p>
+            <label class="check">
+              <input type="checkbox" id="agree" />
+              <span>I am 13 or older, or a parent or guardian has said yes, and I agree to the <a href="./legal/terms.html" target="_blank" rel="noopener">Terms</a>.</span>
+            </label>
+            <div class="send-actions" id="send-actions" aria-disabled="true">
+              <a class="btn btn-press btn-wide" id="send-wa" href="#" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2a8.7 8.7 0 0 0-7.5 13.2L3.3 20.8l4.5-1.2A8.7 8.7 0 1 0 12 3.2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8.3c.2-.4.5-.4.8-.4h.5c.2 0 .4.1.5.4l.7 1.6c.1.2 0 .5-.1.6l-.5.6c.6 1.1 1.4 1.9 2.5 2.5l.6-.5c.2-.2.4-.2.6-.1l1.6.7c.3.1.4.3.4.5v.5c0 .3-.1.6-.4.8-.6.4-1.4.6-2.2.3a8.4 8.4 0 0 1-4.6-4.6c-.3-.8-.1-1.6.3-2.2z" fill="currentColor"/></svg>
+                Send on WhatsApp
+              </a>
+              <button type="button" class="btn btn-quiet" id="send-share">More ways to share</button>
+              <button type="button" class="btn btn-quiet" id="send-copy">Copy link</button>
+              <button type="button" class="btn btn-quiet" id="send-image">Save as image</button>
+            </div>
+            <p class="small">Your words travel inside the link itself. Embossed never receives or stores them. <a href="./legal/privacy.html">How privacy works</a></p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="how" id="how" aria-labelledby="how-title">
+        <h2 id="how-title">From blank card to their phone in a minute</h2>
+        <ol class="steps">
+          <li>
+            <h3>Choose a card</h3>
+            <p>Gold leaf, glitter, letterpress and die cut flowers that spill over the edge. Tilt your phone and the foil catches the light.</p>
+          </li>
+          <li>
+            <h3>Write inside it</h3>
+            <p>Your words appear in handwriting on the insert as you type. Pick casual, script or classic.</p>
+          </li>
+          <li>
+            <h3>Send the link</h3>
+            <p>They get a sealed envelope. One tap cracks the wax seal, and the card slides out for them to open.</p>
+          </li>
+        </ol>
+        <p class="promise">
+          There is no sign up and nothing to pay. The card's words are packed into the link you send, so we never see your message.
+        </p>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p>%%BRAND%% is made in %%LOCATION%% by %%OPERATOR%%. Questions or requests: <a href="mailto:%%EMAIL%%">%%EMAIL%%</a></p>
+      <nav aria-label="Legal">
+        <a href="./legal/about.html">About</a>
+        <a href="./legal/privacy.html">Privacy</a>
+        <a href="./legal/terms.html">Terms</a>
+        <a href="./legal/refunds.html">Refunds</a>
+        <a href="./legal/cookies.html">Cookies</a>
+        <a href="./legal/accessibility.html">Accessibility</a>
+        <a href="./legal/delete-data.html">Delete my data</a>
+      </nav>
+    </footer>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
